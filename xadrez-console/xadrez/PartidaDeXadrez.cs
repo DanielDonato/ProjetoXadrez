@@ -96,7 +96,7 @@ namespace xadrez
             return null;
         }
 
-        public bool estaEmCheque(Cor cor)
+        public bool estaEmXeque(Cor cor)
         {
             Peca R = rei(cor);
             if (R == null) {
@@ -112,17 +112,49 @@ namespace xadrez
             return false;
         }
 
+        public bool testeXequemate(Cor cor)
+        {
+            if (!estaEmXeque(cor))
+            {
+                return false;
+            }
+
+            foreach (Peca x in pecasEmJogo(cor)) { 
+                bool[,] mat = x.movimentoPossiveis();
+                for (int i = 0; i < tab.linhas; i++)
+                {
+                    for (int j = 0; j < tab.colunas; j++)
+                    {
+                        if (mat[i, j])
+                        {
+                            Posicao origem = x.posicao;
+                            Posicao destino = new Posicao(i, j);
+                            Peca pecaCapturada = executaMovimento(origem, destino);
+                            bool testeXeque = estaEmXeque(cor);
+                            desfazMovimento(origem, destino, pecaCapturada);
+                            if (!testeXeque)
+                            {
+                                return false;
+                            }
+                            
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
 
 
         public void realizaJogada(Posicao origem, Posicao destino)
         {
             Peca pecaCapturada =  executaMovimento(origem, destino);
-            if (estaEmCheque(jogadorAtual)) {
+            if (estaEmXeque(jogadorAtual)) {
                 desfazMovimento(origem,destino,pecaCapturada);
                 throw new TabuleiroException("Vc nao pode se colocar em xeque");
             }
 
-            if (estaEmCheque(adversaria(jogadorAtual)))
+            if (estaEmXeque(adversaria(jogadorAtual)))
             {
                 xeque = true;
             }
@@ -130,8 +162,16 @@ namespace xadrez
             {
                 xeque = false;
             }
-            turno++;
-            mudaJogador();
+
+            if (testeXequemate(adversaria(jogadorAtual)))
+            {
+                terminada = true;
+            }
+            else
+            {
+                turno++;
+                mudaJogador();
+            }
         }
 
         private void mudaJogador()
@@ -177,18 +217,11 @@ namespace xadrez
 
         private void colocarPecas() {
             colocarNovaPeca('c', 1, new Torre(tab, Cor.Branca));
-            colocarNovaPeca('c', 2, new Torre(tab, Cor.Branca));
             colocarNovaPeca('d', 1, new Rei(tab, Cor.Branca));
-            colocarNovaPeca('e', 1, new Torre(tab, Cor.Branca));
-            colocarNovaPeca('e', 2, new Torre(tab, Cor.Branca));
-            colocarNovaPeca('d', 2, new Torre(tab, Cor.Branca));
+            colocarNovaPeca('h', 7, new Torre(tab, Cor.Branca));
 
-            colocarNovaPeca('c', 7, new Torre(tab, Cor.Preto));
-            colocarNovaPeca('c', 8, new Torre(tab, Cor.Preto));
-            colocarNovaPeca('d', 8, new Rei(tab, Cor.Preto));
-            colocarNovaPeca('e', 7, new Torre(tab, Cor.Preto));
-            colocarNovaPeca('e', 8, new Torre(tab, Cor.Preto));
-            colocarNovaPeca('d', 7, new Torre(tab, Cor.Preto));
+            colocarNovaPeca('a', 8, new Rei(tab, Cor.Preto));
+            colocarNovaPeca('b', 8, new Torre(tab, Cor.Preto));
 
 
         }
